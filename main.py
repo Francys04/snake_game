@@ -1,111 +1,171 @@
-from tkinter import *
+import turtle
 import random
+import time
 
-GAME_WIDTH = 700
-GAME_HEIGHT = 700
-SPEED = 50
-SPACE_SIZE = 50
-BODY_PARTS = 3
-SNAKE_COLOR = "#EB2700"
-FOOD_COLOR = "#00D524"
-BACKGROUND_COLOR = "#D6D8C7"
+# create screen
+screen = turtle.Screen()
+screen.title("Snake_game")
+screen.setup(width=700, height=700)
+screen.tracer(0)
+screen.bgcolor("grey")
 
+# creating border
+turtle.speed(5)
+turtle.pensize(4)
+turtle.penup()
+turtle.goto(-310, 250)
+turtle.pendown()
+turtle.color("green")
+turtle.forward(600)
+turtle.right(90)
+turtle.forward(500)
+turtle.right(90)
+turtle.forward(600)
+turtle.right(90)
+turtle.forward(500)
+turtle.right(90)
+turtle.penup()
+turtle.hideturtle()
 
-class Snake:
-
-    def __init__(self):
-        self.body_size = BODY_PARTS
-        self.coordonates = []
-        self.squares = []
-
-        for i in range(0, BODY_PARTS):
-            self.coordonates.append([0, 0])
-
-        for x, y in self.coordonates:
-            square = canvas.create_rectangle(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=SNAKE_COLOR)
-            self.squares.append(square)
-
-
-class Food:
-    def __init__(self):
-        x = random.randint(0, (GAME_WIDTH / SPACE_SIZE) - 1) * SPACE_SIZE
-        y = random.randint(0, (GAME_HEIGHT / SPACE_SIZE) - 1) * SPACE_SIZE
-
-        self.coordinates = [x, y]
-        canvas.create_oval(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=FOOD_COLOR)
-
-
-def next_turn():
-    x, y = snake.coordonates[0]
-
-    if direction == 'up':
-        y -= SPACE_SIZE
-
-    elif direction == 'down':
-        y += SPACE_SIZE
-
-    elif direction == 'left':
-        x -= SPACE_SIZE
-
-    elif direction == 'right':
-        x += SPACE_SIZE
-
-    snake.coordonates.insert(0, (x,y))
-
-    square = canvas.create_rectangle(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=SNAKE_COLOR)
-
-    snake.squares.insert(0, square)
-
-    del snake.coordonates[-1]
-    canvas.delete(snake.squares[-1])
-
-    del snake.squares[-1]
-
-    window.after(SPEED, next_turn, snake, food)
-
-
-def change_direction(new_direction):
-    pass
-
-
-def check_collisions():
-    pass
-
-
-def game_over():
-    pass
-
-
-window = Tk()
-window.title("Snake")
-window.resizable(False, False)
-
+# score
 score = 0
-direction = 'down'
+delay = 0.1
 
-label = Label(window, text="Score:{}".format(score), font=("consolas", 40))
-label.pack()
+# snake
+snake = turtle.Turtle()
+snake.speed()
+snake.shape("square")
+snake.color("red")
+snake.penup()
+snake.goto(0, 0)
+snake.direction = 'stop'
 
-canvas = Canvas(window, bg=BACKGROUND_COLOR, height=GAME_HEIGHT, width=GAME_WIDTH)
-canvas.pack()
+# food
+fruit = turtle.Turtle()
+fruit.speed(0)
+fruit.shape("square")
+fruit.color("orange")
+fruit.penup()
+fruit.goto(30, 30)
 
-window.update()
+old_fruit = []
 
-window_width = window.winfo_width()
-window_height = window.winfo_height()
-screen_width = window.winfo_screenwidth()
-screen_height = window.winfo_screenheight()
+# scoring
+scoring = turtle.Turtle()
+scoring.speed(0)
+scoring.color('white')
+scoring.penup()
+scoring.hideturtle()
+scoring.goto(0, 300)
+scoring.write("Score: ", align="center", font=("Coursera", 24, "bold"))
 
-# position
 
-x = int((screen_width / 2) - (window_width / 2))
-y = int((screen_height / 2) - (window_height / 2))
+# define move control
 
-window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+def snake_go_up():
+    if snake.direction != "down":
+        snake.direction = "up"
 
-snake = Snake()
-food = Food()
 
-next_turn(x, y)
+def snake_go_down():
+    if snake.direction != "up":
+        snake.direction = "down"
 
-window.mainloop()
+
+def snake_go_left():
+    if snake.direction != "right":
+        snake.direction = "left"
+
+
+def snake_go_right():
+    if snake.direction != "left":
+        snake.direction = "right"
+
+
+def snake_move():
+    if snake.direction == "up":
+        y = snake.ycor()
+        snake.sety(y + 20)
+
+    if snake.direction == "down":
+        y = snake.ycor()
+        snake.sety(y - 20)
+
+    if snake.direction == "left":
+        x = snake.xcor()
+        snake.setx(x - 20)
+
+    if snake.direction == "right":
+        x = snake.xcor()
+        snake.setx(x + 20)
+
+
+# keyboard binding
+screen.listen()
+screen.onkeypress(snake_go_up, "Up")
+screen.onkeypress(snake_go_down, "Down")
+screen.onkeypress(snake_go_left, "Left")
+screen.onkeypress(snake_go_right, "Right")
+
+# main loop
+while True:
+    screen.update()
+
+    #     snake and fruit collision
+    if snake.distance(fruit) < 20:
+        x = random.randint(-290, 270)
+        y = random.randint(-240, 240)
+        fruit.goto(x, y)
+
+        scoring.clear()
+        score += 1
+
+        scoring.write("Score: {}".format(score), align="center", font=("Coursier", 24, "bold"))
+        delay -= 0.001
+
+        # creating new foods
+        new_fruit = turtle.Turtle()
+        new_fruit.speed(0)
+        new_fruit.shape("square")
+        new_fruit.color('red')
+        new_fruit.penup()
+        old_fruit.append(new_fruit)
+
+    # adding ball to snake
+
+    for index in range(len(old_fruit) - 1, 0, -1):
+        a = old_fruit[index - 1].xcor()
+        b = old_fruit[index - 1].ycor()
+
+        old_fruit[index].goto(a, b)
+
+    if len(old_fruit) > 0:
+        a = snake.xcor()
+        b = snake.ycor()
+        old_fruit[0].goto(a, b)
+
+    snake_move()
+
+    # snake and border collision
+
+    if snake.xcor() > 280 or snake.xcor() < -300 or snake.ycor() > 240 or snake.ycor() < -240:
+        time.sleep(1)
+        screen.clear()
+        screen.bgcolor("turquoise")
+        scoring.goto(0, 0)
+        scoring.write("      Game Over  \n Your score is {}".format(score), align="center",
+                      font=("Coursera", 30, "bold"))
+
+    # snake collision
+    for food in old_fruit:
+        if food.distance(snake) < 20:
+            time.sleep(1)
+            screen.clear()
+            screen.bgcolor("turquoise")
+            scoring.goto(0, 0)
+            scoring.write("      Game Over  \n Your score is {}".format(score), align="center",
+                          font=("Coursera", 30, "bold"))
+
+    time.sleep(delay)
+
+turtle.Terminator()
